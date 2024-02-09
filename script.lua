@@ -1,4 +1,4 @@
-instrument { name = "Exponential Moving Average", short_name = "EMA", overlay = true, icon="indicators:MA" }
+instrument { name = "Exponential Moving Average", short_name =  ema", overlay = true, icon="indicators:MA" }
 
 period = input (20, "front.period", input.integer, 1)
 source = input (1, "front.ind.source", input.string_selection, inputs.titles_overlay)
@@ -11,7 +11,7 @@ input_group {
 
 local sourceSeries = inputs [source]
 
-plot (ema (sourceSeries, period), "EMA", color, width)
+plot  ema (sourceSeries, period),  ema", color, width)
 
 period = input (40, "front.period", input.integer, 1)
 source = input (1, "front.ind.source", input.string_selection, inputs.titles_overlay)
@@ -24,4 +24,60 @@ input_group {
 
 local sourceSeries = inputs [source]
 
-plot (ema (sourceSeries, period), "EMA", color, width)
+plot  ema (sourceSeries, period),  ema", color, width)
+
+input_group {
+    "Compra",
+    colorBuy = input { default = "green", type = input.color }, 
+    visibleBuy = input { default = true, type = input.plot_visibility }
+}
+
+input_group {
+    "Venta",
+    colorSell = input { default = "red", type = input.color },
+    visibleSell = input { default = true, type = input.plot_visibility }
+}
+
+local titleValue = inputs[EmaValue]
+
+-- mdia mvel linear rpida
+smaFast = ema(titleValue, MaFast_period)
+
+-- mdia mvel linear devagar
+smaSlow = ema(titleValue, MaSlow_period)
+
+-- calculo diferencial - serie
+buffer1 = smaFast - smaSlow 
+
+-- clculo da mdia mvel ponderada - serie
+buffer2 = wma(buffer1, Signal_period)
+
+buyCondition = conditional(buffer1 > buffer2 and buffer1[1] < buffer2[1] and not (buffer1 < buffer2 and buffer1[1] > buffer2[1]))
+buyCondition = conditional(buffer1 > buffer2 and buffer1[1] < buffer2[1])
+
+sellCondition = conditional(buffer1 < buffer2 and buffer1[1] > buffer2[1] and not (buffer1 > buffer2 and buffer1[1] < buffer2[1]))
+sellCondition = conditional(buffer1 < buffer2 and buffer1[1] > buffer2[1] )
+
+            plot_shape(
+                (buyCondition),
+                "GO",
+                shape_style.triangleup,
+                shape_size.huge,
+                colorBuy,
+                shape_location.belowbar,
+                -1,
+                "GO",
+                "green"
+               ) 
+
+          plot_shape(
+              (sellCondition),
+                "GO",
+                shape_style.triangledown,
+                shape_size.huge,
+                colorSell,
+                shape_location.abovebar,
+                -1,
+                "GO",
+                "red"
+          )
